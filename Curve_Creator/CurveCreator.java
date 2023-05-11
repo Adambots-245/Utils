@@ -6,18 +6,20 @@ import java.util.Arrays;
 import javax.swing.*;
 import java.awt.event.*;
 
-import Curve_Creator.CurveMethods.Vector2;
-
 public class CurveCreator {
 
     static final DrawingManager panel = new DrawingManager();
     static final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
     static final int size = gd.getDisplayMode().getHeight()-100;
+    static JFrame frame;
 
-    static ArrayList<Vector2> points = new ArrayList<Vector2>(Arrays.asList(new Vector2(0, 0), new Vector2(size, size)));
+    static final int xPointerOffest = -7;
+    static final int yPointerOffest = 30;
+
+    static ArrayList<Point> points = new ArrayList<Point>(Arrays.asList(new Point(0, 0), new Point(size, size)));
 
     public static void main(String[] args) {
-        JFrame frame = new JFrame("PID Simulator");
+        frame = new JFrame("PID Simulator");
         panel.setLayout(null);
         panel.setPreferredSize(new Dimension(size+200, size));
 
@@ -37,22 +39,27 @@ public class CurveCreator {
 
             public void mouseClicked(MouseEvent me) { 
                 if (me.getX() < size) {
-                    addPoint(new Vector2(me.getX()-7, size-me.getY()+30));
+                    addPoint(getMousePos());
                     frame.repaint();
                 }
 
-                System.out.println(MouseInfo.getPointerInfo().getLocation());
+                System.out.println(MouseInfo.getPointerInfo().getLocation().x - frame.getLocation().x);
+                System.out.println(MouseInfo.getPointerInfo().getLocation().y - frame.getLocation().y); //invert y
             }
         });
     }
 
-    public static void addPoint(Vector2 point) {
+    public static void addPoint(Point point) {
         for (int i = 0; i < points.size(); i++) {
             if (points.get(i).x > point.x) {
                 points.add(i, point);
                 return;
             }
         }
+    }
+
+    public static Point getMousePos() {
+        return new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocation().x+xPointerOffest, MouseInfo.getPointerInfo().getLocation().y-frame.getLocation().y+yPointerOffest);
     }
 
     static class DrawingManager extends JPanel {
