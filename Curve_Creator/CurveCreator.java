@@ -4,22 +4,25 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import javax.swing.*;
+import java.lang.Math;
+
 import java.awt.event.*;
 
 public class CurveCreator {
+    static JFrame frame;
 
     static final DrawingManager panel = new DrawingManager();
     static final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
     static final int size = gd.getDisplayMode().getHeight()-100;
-    static JFrame frame;
 
     static final int xPointerOffest = -7;
-    static final int yPointerOffest = 30;
+    static final int yPointerOffest = -30;
 
     static ArrayList<Point> points = new ArrayList<Point>(Arrays.asList(new Point(0, 0), new Point(size, size)));
+    static Point selected;
 
     public static void main(String[] args) {
-        frame = new JFrame("PID Simulator");
+        frame = new JFrame("Curve Creator");
         panel.setLayout(null);
         panel.setPreferredSize(new Dimension(size+200, size));
 
@@ -31,21 +34,36 @@ public class CurveCreator {
         frame.setLocationRelativeTo(null);
         frame.setVisible(true); 
 
-        frame.addMouseListener(new MouseListener() {
-            public void mousePressed(MouseEvent me) { }
-            public void mouseReleased(MouseEvent me) { }
-            public void mouseEntered(MouseEvent me) { }
-            public void mouseExited(MouseEvent me) { }
-
-            public void mouseClicked(MouseEvent me) { 
-                if (me.getX() < size) {
-                    addPoint(getMousePos());
+        Timer timer = new Timer(15, new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                if (selected != null) {
+                    selected.setLocation(getMousePos());
                     frame.repaint();
                 }
-
-                System.out.println(MouseInfo.getPointerInfo().getLocation().x - frame.getLocation().x);
-                System.out.println(MouseInfo.getPointerInfo().getLocation().y - frame.getLocation().y); //invert y
             }
+        });
+        timer.start(); 
+
+        frame.addMouseListener(new MouseListener() {
+            public void mousePressed(MouseEvent me) {
+                if (me.getX() < size) {
+                    for (Point point : points) {
+                        if (getDist(point, getMousePos()) < 30) {
+                            selected = point;
+                            return;
+                        }
+                    }
+                    addPoint(getMousePos());
+                }
+                frame.repaint();
+            }
+            public void mouseReleased(MouseEvent me) {
+                selected = null;
+                frame.repaint();
+            }
+            public void mouseEntered(MouseEvent me) { }
+            public void mouseExited(MouseEvent me) { }
+            public void mouseClicked(MouseEvent me) { }
         });
     }
 
@@ -59,7 +77,21 @@ public class CurveCreator {
     }
 
     public static Point getMousePos() {
-        return new Point(MouseInfo.getPointerInfo().getLocation().x-frame.getLocation().x+xPointerOffest, MouseInfo.getPointerInfo().getLocation().y-frame.getLocation().y+yPointerOffest);
+        int xPos = MouseInfo.getPointerInfo().getLocation().x-frame.getLocation().x+xPointerOffest;
+        int yPos = MouseInfo.getPointerInfo().getLocation().y-frame.getLocation().y+yPointerOffest;
+        xPos = clamp(xPos, 0, size);
+        yPos = clamp(yPos, 0, size);
+        return new Point(xPos, size - yPos);
+    }
+
+    public static double getDist(Point point1, Point point2) {
+        return Math.hypot(point1.x-point2.x, point1.y-point2.y);
+    }
+
+    public static int clamp(int val, int min, int max) {
+        val = Math.min(val, max);
+        val = Math.max(val, min);
+        return val;
     }
 
     static class DrawingManager extends JPanel {
