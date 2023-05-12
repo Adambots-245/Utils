@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import javax.swing.*;
-import java.lang.Math;
 
 import java.awt.event.*;
 
@@ -28,7 +27,7 @@ public class CurveCreator {
 
         frame.add(panel);
 
-        frame.setIconImage(CurveMethods.imageURL("https://github.com/CrazyMeowCows/Images/blob/main/AdambotsLogoBlack.png?raw=true"));
+        frame.setIconImage(FrameUtils.imageURL("https://github.com/CrazyMeowCows/Images/blob/main/AdambotsLogoBlack.png?raw=true"));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setLocationRelativeTo(null);
@@ -48,7 +47,7 @@ public class CurveCreator {
             public void mousePressed(MouseEvent me) {
                 if (me.getX() < size) {
                     for (Point point : points) {
-                        if (getDist(point, getMousePos()) < 30) {
+                        if (MathUtils.getDist(point, getMousePos()) < 30) {
                             selected = point;
                             return;
                         }
@@ -79,20 +78,11 @@ public class CurveCreator {
     public static Point getMousePos() {
         int xPos = MouseInfo.getPointerInfo().getLocation().x-frame.getLocation().x+xPointerOffest;
         int yPos = MouseInfo.getPointerInfo().getLocation().y-frame.getLocation().y+yPointerOffest;
-        xPos = clamp(xPos, 0, size);
-        yPos = clamp(yPos, 0, size);
+        xPos = MathUtils.clamp(xPos, 0, size);
+        yPos = MathUtils.clamp(yPos, 0, size);
         return new Point(xPos, size - yPos);
     }
-
-    public static double getDist(Point point1, Point point2) {
-        return Math.hypot(point1.x-point2.x, point1.y-point2.y);
-    }
-
-    public static int clamp(int val, int min, int max) {
-        val = Math.min(val, max);
-        val = Math.max(val, min);
-        return val;
-    }
+    
 
     static class DrawingManager extends JPanel {
         protected void paintComponent(Graphics g) {
@@ -109,9 +99,16 @@ public class CurveCreator {
             }
 
             for (int i = 0; i < points.size(); i++) {
-                g2d.setColor(Color.black);
+                if (points.get(i) == selected) {
+                    g2d.setColor(Color.white);
+                    g2d.setStroke(new BasicStroke(5));
+                } else {
+                    g2d.setColor(Color.black);
+                }
                 g2d.drawArc(points.get(i).x-5, size-points.get(i).y-5, 10, 10, 0, 360);
+
                 g2d.setColor(Color.red);
+                g2d.setStroke(new BasicStroke(1));
                 g2d.fillArc(points.get(i).x-5, size-points.get(i).y-5, 10, 10, 0, 360);
 
                 if (i < points.size()-1) {
