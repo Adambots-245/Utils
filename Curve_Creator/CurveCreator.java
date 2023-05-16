@@ -10,6 +10,8 @@ import java.awt.event.*;
 public class CurveCreator {
     static JFrame frame;
 
+    static final Font font = new Font("Serif", Font.PLAIN, 20);
+
     static final DrawingManager panel = new DrawingManager();
     static final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
     static final int size = gd.getDisplayMode().getHeight()-100;
@@ -20,49 +22,95 @@ public class CurveCreator {
     static ArrayList<Point> points = new ArrayList<Point>(Arrays.asList(new Point(0, 0), new Point(size, size)));
     static Point selected;
 
+    static Boolean movePoint = false;
+    static Boolean mouseDown = false;
+
     public static void main(String[] args) {
         frame = new JFrame("Curve Creator");
+
+        //Create panel to add to frame ------------------------------------------------------------
         panel.setLayout(null);
         panel.setPreferredSize(new Dimension(size+200, size));
 
+        JButton deletePoint = FrameUtils.button("Delete Point", size + 10, 10, 180, 30);
+        JButton deselectPoint = FrameUtils.button("Deselect Point", size + 10, 45, 180, 30);
+
+        JTextField xLabel = FrameUtils.text("X: 0", size + 10, 85);
+        JTextField yLabel = FrameUtils.text("Y: 0", size + 10, 110);
+
         frame.add(panel);
 
+        //Setup Frame -----------------------------------------------------------------------------
         frame.setIconImage(FrameUtils.imageURL("https://github.com/CrazyMeowCows/Images/blob/main/AdambotsLogoBlack.png?raw=true"));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true); 
 
+        //Create Timer ----------------------------------------------------------------------------
         Timer timer = new Timer(15, new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 if (selected != null) {
-                    selected.setLocation(getMousePos());
-                    frame.repaint();
+                    if (selected != null && MathUtils.getDist(selected, getMousePos()) > 30 && mouseDown) {
+                        movePoint = true;
+                    }
+                    if (selected != null && movePoint) {
+                        selected.setLocation(getMousePos());
+                        frame.repaint();
+                    }
+                    if (xLabel.getText().substring(3) != Integer.toString(selected.x)) {
+                        xLabel.setText("X: " + selected.x);
+                    }
+                    if (xLabel.getText().substring(3) != Integer.toString(selected.y)) {
+                        yLabel.setText("Y: " + selected.y);
+                    }
+                } else {
+                    xLabel.setText("X: 0");
+                    yLabel.setText("Y: 0");
                 }
             }
         });
         timer.start(); 
 
+        //Add mouse listener for clicks -----------------------------------------------------------
         frame.addMouseListener(new MouseListener() {
             public void mousePressed(MouseEvent me) {
                 if (me.getX() < size) {
+                    mouseDown = true;
                     for (Point point : points) {
                         if (MathUtils.getDist(point, getMousePos()) < 30) {
                             selected = point;
+                            frame.repaint();
                             return;
                         }
                     }
                     addPoint(getMousePos());
+                    selected = null;
+                    frame.repaint();
                 }
-                frame.repaint();
             }
             public void mouseReleased(MouseEvent me) {
-                selected = null;
+                mouseDown = false;
+                movePoint = false;
                 frame.repaint();
             }
             public void mouseEntered(MouseEvent me) { }
             public void mouseExited(MouseEvent me) { }
             public void mouseClicked(MouseEvent me) { }
+        });
+
+        //Add action listeners for buttons --------------------------------------------------------
+        deletePoint.addActionListener(new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                points.remove(selected);
+                frame.repaint();
+            }
+        });
+        deselectPoint.addActionListener(new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                selected = null;
+                frame.repaint();
+            }
         });
     }
 
