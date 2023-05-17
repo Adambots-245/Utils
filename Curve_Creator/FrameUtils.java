@@ -43,10 +43,10 @@ public class FrameUtils {
         return label;
     }
 
-    public static JTextField text(String value, int x, int y){  
+    public static JTextField field(String value, int x, int y){  
         JTextField text = new JTextField(value);
         text.setFont(CurveCreator.font);
-        text.setBounds(x, y, 180, 25);
+        text.setBounds(x, y, 155, 25);
 
         CurveCreator.panel.add(text);
         return text;

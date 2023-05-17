@@ -25,6 +25,9 @@ public class CurveCreator {
     static Boolean movePoint = false;
     static Boolean mouseDown = false;
 
+    static JTextField xField;
+    static JTextField yField;
+
     public static void main(String[] args) {
         frame = new JFrame("Curve Creator");
 
@@ -35,8 +38,11 @@ public class CurveCreator {
         JButton deletePoint = FrameUtils.button("Delete Point", size + 10, 10, 180, 30);
         JButton deselectPoint = FrameUtils.button("Deselect Point", size + 10, 45, 180, 30);
 
-        JTextField xLabel = FrameUtils.text("X: 0", size + 10, 85);
-        JTextField yLabel = FrameUtils.text("Y: 0", size + 10, 110);
+        FrameUtils.label("X:", size + 10, 85);
+        FrameUtils.label("Y:", size + 10, 110);
+
+        xField = FrameUtils.field("0", size + 35, 85);
+        yField = FrameUtils.field("0", size + 35, 110);
 
         frame.add(panel);
 
@@ -51,22 +57,18 @@ public class CurveCreator {
         Timer timer = new Timer(15, new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 if (selected != null) {
-                    if (selected != null && MathUtils.getDist(selected, getMousePos()) > 30 && mouseDown) {
+                    if (MathUtils.getDist(selected, getMousePos()) > 30 && mouseDown) {
                         movePoint = true;
                     }
-                    if (selected != null && movePoint) {
+                    if (movePoint) {
                         selected.setLocation(getMousePos());
                         frame.repaint();
-                    }
-                    if (xLabel.getText().substring(3) != Integer.toString(selected.x)) {
-                        xLabel.setText("X: " + selected.x);
-                    }
-                    if (xLabel.getText().substring(3) != Integer.toString(selected.y)) {
-                        yLabel.setText("Y: " + selected.y);
+
+                        updatePosText();
                     }
                 } else {
-                    xLabel.setText("X: 0");
-                    yLabel.setText("Y: 0");
+                    xField.setText("0");
+                    yField.setText("0");
                 }
             }
         });
@@ -80,6 +82,7 @@ public class CurveCreator {
                     for (Point point : points) {
                         if (MathUtils.getDist(point, getMousePos()) < 30) {
                             selected = point;
+                            updatePosText();
                             frame.repaint();
                             return;
                         }
@@ -120,6 +123,15 @@ public class CurveCreator {
                 points.add(i, point);
                 return;
             }
+        }
+    }
+
+    public static void updatePosText() {
+        if (xField.getText() != Integer.toString(selected.x)) {
+            xField.setText("" + selected.x);
+        }
+        if (yField.getText() != Integer.toString(selected.y)) {
+            yField.setText("" + selected.y);
         }
     }
 
