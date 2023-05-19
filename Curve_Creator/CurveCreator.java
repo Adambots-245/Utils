@@ -115,6 +115,22 @@ public class CurveCreator {
                 frame.repaint();
             }
         });
+
+        Action xyInputs = new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                if (selected != null) {
+                    try {
+                            selected.x = Integer.parseInt(xField.getText())*size;
+                            selected.y = Integer.parseInt(yField.getText())*size;
+                            frame.repaint();
+                    } catch (NumberFormatException value) {
+                        System.out.println("Invalid Entry");
+                    }
+                }
+            }
+        };
+        xField.addActionListener(xyInputs);
+        yField.addActionListener(xyInputs);
     }
 
     public static void addPoint(Point point) {
