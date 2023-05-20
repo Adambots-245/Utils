@@ -11,4 +11,9 @@ public class MathUtils {
         val = Math.max(val, min);
         return val;
     }
+
+    public static double round(double value, int places) {
+        double scale = Math.pow(10, places);
+        return Math.round(value * scale) / scale;
+    }
 }

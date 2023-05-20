@@ -106,6 +106,7 @@ public class CurveCreator {
         deletePoint.addActionListener(new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 points.remove(selected);
+                selected = null;
                 frame.repaint();
             }
         });
@@ -120,8 +121,8 @@ public class CurveCreator {
             public void actionPerformed(ActionEvent e) {
                 if (selected != null) {
                     try {
-                            selected.x = Integer.parseInt(xField.getText())*size;
-                            selected.y = Integer.parseInt(yField.getText())*size;
+                            selected.x = (int)(Double.parseDouble(xField.getText())*size);
+                            selected.y = (int)(Double.parseDouble(yField.getText())*size);
                             frame.repaint();
                     } catch (NumberFormatException value) {
                         System.out.println("Invalid Entry");
@@ -143,11 +144,14 @@ public class CurveCreator {
     }
 
     public static void updatePosText() {
-        if (xField.getText() != Integer.toString(selected.x)) {
-            xField.setText("" + selected.x);
+        double xVal = MathUtils.round((float)selected.x/(float)size, 2);
+        double yVal = MathUtils.round((float)selected.y/(float)size, 2);
+
+        if (xField.getText() != Double.toString(xVal)) {
+            xField.setText("" + xVal);
         }
-        if (yField.getText() != Integer.toString(selected.y)) {
-            yField.setText("" + selected.y);
+        if (yField.getText() != Double.toString(yVal)) {
+            yField.setText("" + yVal);
         }
     }
 
