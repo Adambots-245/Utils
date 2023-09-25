@@ -5,35 +5,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import javax.swing.*;
-
 import java.awt.event.*;
 
 public class CurveCreator {
     static JFrame frame;
-
-    public static class point{
-        int x;
-        int y;
-        Boolean fixed;
-        public point(int x, int y, Boolean fixed){
-            this.x = x;
-            this.y = y;
-            this.fixed = fixed;
-        }
-
-        public void setPos(int x, int y){
-            this.x = x;
-            this.y = y;
-        }
-        public void setPos(Point point){
-            this.x = point.x;
-            this.y = point.y;
-        }
-
-        public int getX() {return this.x;}
-        public int getY() {return this.y;}
-    }
-
     static final Font font = new Font("Serif", Font.PLAIN, 20);
 
     static final DrawingManager panel = new DrawingManager();
@@ -53,6 +28,34 @@ public class CurveCreator {
 
     static JTextField xField;
     static JTextField yField;
+    static JTextField importField;
+
+    public static class point{
+        int x;
+        int y;
+        Boolean fixed;
+        public point(int x, int y, Boolean fixed) {
+            this.x = x;
+            this.y = y;
+            this.fixed = fixed;
+        }
+
+        public void setPos(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+        public void setPos(Point point) {
+            this.x = point.x;
+            this.y = point.y;
+        }
+
+        public int getX() {
+            return this.x;
+        }
+        public int getY() {
+            return this.y;
+        }
+    }
 
     public static void main(String[] args) {
         frame = new JFrame("Curve Creator");
@@ -62,21 +65,24 @@ public class CurveCreator {
         panel.setPreferredSize(new Dimension(size+200, size));
 
         JButton deletePoint = FrameUtils.button("Delete Point", size + 10, 10, 180, 30);
-        JButton generateString = FrameUtils.button("Generate String", size + 10, 45, 180, 30);
+        JButton generateArray = FrameUtils.button("Generate Array", size + 10, 45, 180, 30);
+        JButton importArray = FrameUtils.button("Import Array", size + 10, 145, 180, 30);
 
         FrameUtils.label("X:", size + 10, 85);
         FrameUtils.label("Y:", size + 10, 110);
 
-        xField = FrameUtils.field("0", size + 35, 85);
-        yField = FrameUtils.field("0", size + 35, 110);
+        xField = FrameUtils.field("0", size + 35, 85, 155, 25);
+        yField = FrameUtils.field("0", size + 35, 110, 155, 25);
+        importField = FrameUtils.field("", size + 10, 185, 180, 25);
 
         frame.add(panel);
 
         //Setup Frame -----------------------------------------------------------------------------
-        frame.setIconImage(FrameUtils.imageURL("https://github.com/CrazyMeowCows/Images/blob/main/AdambotsLogoBlack.png?raw=true"));
+        frame.setIconImage(Toolkit.getDefaultToolkit().getImage("Curve_Creator/AdambotsLogoBlack.png"));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setLocationRelativeTo(null);
+        frame.setResizable(false);
         frame.setVisible(true); 
 
         //Create Timer ----------------------------------------------------------------------------
@@ -137,17 +143,47 @@ public class CurveCreator {
                 clearSelected();
             }
         });
-        generateString.addActionListener(new AbstractAction() {
+        generateArray.addActionListener(new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
+                int prevX = 0;
+                Boolean badArray = false;
                 String str = "{";
                 for (point Point : points){
+                    if (Point.getX() < prevX) {badArray = true;}
+                    prevX = Point.getX();
                     str += "{";
                     str += MathUtils.roundToPlace((double)Point.getX()/sizeD, 4);
                     str += ", ";
                     str += MathUtils.roundToPlace((double)Point.getY()/sizeD, 4);
                     str += "},";
                 }
-                System.out.println(str.substring(0, str.length()-1) + "}");
+                if (!badArray) {
+                    System.out.println(str.substring(0, str.length()-1) + "}");
+                } else {
+                    System.out.println("Invalid Array - Ensure points are sequential and constitute a valid function");
+                }
+            }
+        });
+        importArray.addActionListener(new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    ArrayList<Double> vals = new ArrayList<Double>();
+                    String[] input = importField.getText().split(",");
+                    for (String string : input) {
+                        string = string.replace("{", "").replace("}", "");
+                        string = string.trim();
+                        vals.add(Double.valueOf(string));
+                    }
+                    points.clear();
+                    for (int i = 0; i < vals.size()-1; i += 2) {
+                        points.add(new point((int)(vals.get(i)*sizeD), (int)(vals.get(i+1)*sizeD), i == 0 || i == vals.size()-2));
+                    }
+                    clearSelected();
+                    importField.setText("");
+                    System.out.println("Points Imported Successfully");
+                } catch (NumberFormatException value) {
+                    System.out.println("Invalid Entry - Ensure only the 2D array is inputted: {{...}, {...}}");
+                }
             }
         });
 
@@ -157,7 +193,7 @@ public class CurveCreator {
                     try {
                         double x = Double.parseDouble(xField.getText())*sizeD;
                         double y = Double.parseDouble(yField.getText())*sizeD;
-                        selected.setPos((int)x, (int)y);
+                        selected.setPos(MathUtils.clamp((int)x, 0, size), MathUtils.clamp((int)y, 0, size));
                         frame.repaint();
                     } catch (NumberFormatException value) {
                         System.out.println("Invalid Entry");
@@ -177,19 +213,16 @@ public class CurveCreator {
             }
         }
     }
-
     public static void clearSelected() {
         selected = null;
         frame.repaint();
         xField.setText("0");
         yField.setText("0");
     }
-
     public static void updatePosText() {
         xField.setText("" + MathUtils.roundToPlace((double)selected.getX()/sizeD, 3));
         yField.setText("" + MathUtils.roundToPlace((double)selected.getY()/sizeD, 3));
     }
-
     public static Point getMousePos() {
         int xPos = MouseInfo.getPointerInfo().getLocation().x-frame.getLocation().x+xPointerOffest;
         int yPos = MouseInfo.getPointerInfo().getLocation().y-frame.getLocation().y+yPointerOffest;
@@ -204,7 +237,10 @@ public class CurveCreator {
             super.paintComponent(g);
             Graphics2D g2d = (Graphics2D) g;
             setBackground(new Color(230, 230, 230));
+            g2d.setColor(new Color(200, 200, 200));
+            g2d.fillRect(0, 0, size, size);
 
+            g2d.setColor(Color.BLACK);
             for (int x = 0; x <= size; x += size/10) {
                 g2d.drawLine(x, 0, x, size);
             }

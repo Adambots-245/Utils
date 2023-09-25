@@ -44,12 +44,12 @@ public class FrameUtils {
         return label;
     }
 
-    public static JTextField field(String value, int x, int y){  
-        JTextField text = new JTextField(value);
-        text.setFont(CurveCreator.font);
-        text.setBounds(x, y, 155, 25);
+    public static JTextField field(String value, int x, int y, int w, int h){  
+        JTextField field = new JTextField(value);
+        field.setFont(CurveCreator.font);
+        field.setBounds(x, y, w, h);
 
-        CurveCreator.panel.add(text);
-        return text;
+        CurveCreator.panel.add(field);
+        return field;
     } 
 }
