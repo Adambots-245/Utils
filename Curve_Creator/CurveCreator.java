@@ -134,7 +134,12 @@ public class CurveCreator {
         deletePoint.addActionListener(new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 points.remove(selected);
+<<<<<<< HEAD
                 clearSelected();
+=======
+                selected = null;
+                frame.repaint();
+>>>>>>> 962cbeaa5c99476e70aba4636f02d8cacaba85b4
             }
         });
         generateString.addActionListener(new AbstractAction() {
@@ -155,10 +160,16 @@ public class CurveCreator {
             public void actionPerformed(ActionEvent e) {
                 if (selected != null) {
                     try {
+<<<<<<< HEAD
                         double x = Double.parseDouble(xField.getText())*sizeD;
                         double y = Double.parseDouble(yField.getText())*sizeD;
                         selected.setPos((int)x, (int)y);
                         frame.repaint();
+=======
+                            selected.x = (int)(Double.parseDouble(xField.getText())*size);
+                            selected.y = (int)(Double.parseDouble(yField.getText())*size);
+                            frame.repaint();
+>>>>>>> 962cbeaa5c99476e70aba4636f02d8cacaba85b4
                     } catch (NumberFormatException value) {
                         System.out.println("Invalid Entry");
                     }
@@ -186,8 +197,20 @@ public class CurveCreator {
     }
 
     public static void updatePosText() {
+<<<<<<< HEAD
         xField.setText("" + MathUtils.roundToPlace((double)selected.getX()/sizeD, 3));
         yField.setText("" + MathUtils.roundToPlace((double)selected.getY()/sizeD, 3));
+=======
+        double xVal = MathUtils.round((float)selected.x/(float)size, 2);
+        double yVal = MathUtils.round((float)selected.y/(float)size, 2);
+
+        if (xField.getText() != Double.toString(xVal)) {
+            xField.setText("" + xVal);
+        }
+        if (yField.getText() != Double.toString(yVal)) {
+            yField.setText("" + yVal);
+        }
+>>>>>>> 962cbeaa5c99476e70aba4636f02d8cacaba85b4
     }
 
     public static Point getMousePos() {
