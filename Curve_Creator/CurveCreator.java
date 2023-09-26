@@ -19,6 +19,7 @@ public class CurveCreator {
     static final int xPointerOffest = -7;
     static final int yPointerOffest = -30;
     static final double moveThreshold = 15;
+    static int statusCooldown = 0;
 
     static ArrayList<point> points = new ArrayList<point>(Arrays.asList(new point(0, 0, true), new point(size, size, true)));
     static point selected;
@@ -68,8 +69,9 @@ public class CurveCreator {
         JButton generateArray = FrameUtils.button("Generate Array", size + 10, 45, 180, 30);
         JButton importArray = FrameUtils.button("Import Array", size + 10, 145, 180, 30);
 
-        FrameUtils.label("X:", size + 10, 85);
-        FrameUtils.label("Y:", size + 10, 110);
+        FrameUtils.label("X:", size + 10, 85, 190, 25);
+        FrameUtils.label("Y:", size + 10, 110, 190, 25);
+        JLabel statusField = FrameUtils.label("", size + 10, size-60, 190, 50);
 
         xField = FrameUtils.field("0", size + 35, 85, 155, 25);
         yField = FrameUtils.field("0", size + 35, 110, 155, 25);
@@ -97,6 +99,11 @@ public class CurveCreator {
                         frame.repaint();
                         updatePosText();
                     }
+                }
+                if (statusCooldown < 130) {
+                    statusCooldown++;
+                } else {
+                    statusField.setText("");
                 }
             }
         });
@@ -159,6 +166,8 @@ public class CurveCreator {
                 }
                 if (!badArray) {
                     System.out.println(str.substring(0, str.length()-1) + "}");
+                    statusField.setText("<html>Array Printed to<br>Terminal</html>");
+                    statusCooldown = 0;
                 } else {
                     System.out.println("Invalid Array - Ensure points are sequential and constitute a valid function");
                 }
@@ -180,7 +189,8 @@ public class CurveCreator {
                     }
                     clearSelected();
                     importField.setText("");
-                    System.out.println("Points Imported Successfully");
+                    statusField.setText("<html>Array Imported<br>Successfully</html>");
+                    statusCooldown = 0;
                 } catch (NumberFormatException value) {
                     System.out.println("Invalid Entry - Ensure only the 2D array is inputted: {{...}, {...}}");
                 }

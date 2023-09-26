@@ -34,11 +34,11 @@ public class FrameUtils {
         return button;
     } 
 
-    public static JLabel label(String name, int x, int y){  
+    public static JLabel label(String name, int x, int y, int w, int h){  
         JLabel label = new JLabel(name);
         label.setFont(CurveCreator.font);
         label.setForeground(Color.BLACK);
-        label.setBounds(x, y, 150, 25);
+        label.setBounds(x, y, w, h);
 
         CurveCreator.panel.add(label);
         return label;
