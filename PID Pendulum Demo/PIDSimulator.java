@@ -15,7 +15,6 @@ public class PIDSimulator extends JPanel {
     static final int height = gd.getDisplayMode().getHeight()-100;
     static final int pivotX = width/2;  
     static final int pivotY = 100;
-    static final double friction = 0.1;     //friction torque of pendulum pivot point (Nm)
     static final double rotation = Math.PI*2;
 
 
@@ -27,6 +26,7 @@ public class PIDSimulator extends JPanel {
     static double pGain = 0;
     static double iGain = 0;
     static double dGain = 0;
+    static double friction = 0.005;     //friction torque of pendulum pivot point (Nm)
     static double TargetAngle = Math.toRadians(-45);
     static double pCommand = 0;
     static double iCommand = 0;
@@ -46,6 +46,7 @@ public class PIDSimulator extends JPanel {
     static double motorOut = 0;
     static double velocity = 0;
     static double acceleration = 0;
+    static double Vfriction=0;
     static int pendulumX = (int)Math.round(pivotX+Math.sin(angle)*length*2000);
     static int pendulumY = (int)Math.round(pivotY+Math.cos(angle)*length*2000);
     static int TargetX = (int)Math.round(pivotX+Math.sin(TargetAngle)*length*1500);
@@ -64,7 +65,7 @@ public class PIDSimulator extends JPanel {
         PIDMethods.label("Target ∡: ", 10, 95);
         PIDMethods.label("Start ∡: ", 10, 225);
         PIDMethods.label("Motor Limit: ", 10, 255);
-
+        PIDMethods.label("Friction: ", 10, 285);
         
         JTextField pText = PIDMethods.text("0", 100, 5);
         JTextField iText = PIDMethods.text("0", 100, 35);
@@ -72,6 +73,7 @@ public class PIDSimulator extends JPanel {
         JTextField TAtext = PIDMethods.text("" + Math.toDegrees(TargetAngle), 100, 95);
         JTextField rAngle = PIDMethods.text("" + Math.round(Math.toDegrees(angle)), 125, 225);
         JTextField maxPwr = PIDMethods.text("" + Math.round(motorMax), 125, 255);
+        JTextField Frict = PIDMethods.text("" + friction, 125, 285);
 
 
         JButton reset = PIDMethods.button("Reset To Start Angle", width/2, 30, 300, 50);
@@ -110,6 +112,7 @@ public class PIDSimulator extends JPanel {
                     dGain = Double.parseDouble(dText.getText());
                     TargetAngle = Math.toRadians(Double.parseDouble(TAtext.getText()));
                     motorMax = Double.parseDouble(maxPwr.getText());
+                    friction = Double.parseDouble(Frict.getText());
                     
                 } catch (NumberFormatException value) {
                     System.out.println("Invalid Entry");
@@ -121,6 +124,7 @@ public class PIDSimulator extends JPanel {
         dText.addActionListener(pidInputs);
         TAtext.addActionListener(pidInputs);
         maxPwr.addActionListener(pidInputs);
+        Frict.addActionListener(pidInputs);
 
         Action resetClicked = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
@@ -206,9 +210,16 @@ public class PIDSimulator extends JPanel {
 //Physics--------------------------------------------------------------------------------------------------------------------------------------------
     static void Physics () {
         Tgravity = (PendMass*gravity*length*Math.sin(angle));         //Torque on pivot due to gravity pulling down on weight
-        Tfriction = friction*Math.signum(velocity);                   //Torque on pivot due to friction (always opposes velocity)
-        acceleration = (motorOut-Tgravity-Tfriction)/(PendMass*length*length);  // angular accel = total torque/(mass*length^2) 
+        acceleration = (motorOut-Tgravity)/(PendMass*length*length);  // angular accel = total torque/(mass*length^2)
+        //acceleration = (motorOut-Tgravity-Tfriction)/(PendMass*length*length);  // angular accel = total torque/(mass*length^2) 
         velocity += acceleration*timeStep/1000;                       //change in velocity is acceleration * time step
+        Tfriction = -friction*Math.signum(velocity);                   //Torque on pivot due to friction (always opposes velocity)
+        Vfriction = Tfriction*timeStep/((PendMass*length*length)*1000);
+        if(Math.abs(Vfriction)>Math.abs(velocity))                    //if friction is enough to stop pendulum, set velocity to zero 
+             {velocity=0;
+              acceleration=0;}        
+             else
+             {velocity += Vfriction;}                                 //otherwise slow pendulum down by change in velocity from friction
         angle += velocity*timeStep/1000;
 
         pendulumX = (int)Math.round(pivotX+Math.sin(angle)*length*metersToPixel);
