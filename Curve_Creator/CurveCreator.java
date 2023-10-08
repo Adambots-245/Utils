@@ -153,24 +153,30 @@ public class CurveCreator {
         generateArray.addActionListener(new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 int prevX = 0;
-                Boolean badArray = false;
+                for (int i = 0; i < points.size(); i++) {
+                    if (points.get(i).getX() < prevX) {
+                        System.out.println("Invalid Array - Ensure points are sequential and constitute a valid function");
+                        statusField.setText("<html>Error - Check<br>Terminal</html>");
+                        statusCooldown = 0;
+                        return;
+                    }
+                    prevX = points.get(i).getX();
+                }
                 String str = "{";
-                for (point Point : points){
-                    if (Point.getX() < prevX) {badArray = true;}
-                    prevX = Point.getX();
-                    str += "{";
-                    str += MathUtils.roundToPlace((double)Point.getX()/sizeD, 4);
-                    str += ", ";
-                    str += MathUtils.roundToPlace((double)Point.getY()/sizeD, 4);
-                    str += "},";
+                double inc = 0.01;
+                for (double x = 0; x <= 1; x += inc) {
+                    for (int i = 0; i < points.size(); i++) {
+                        if (points.get(i).getX() > x*size) {
+                            str += MathUtils.roundToPlace(MathUtils.lerp(points.get(i-1).getY(), points.get(i).getY(), 
+                                (x+inc-points.get(i-1).getX()/sizeD)/(points.get(i).getX()/sizeD-points.get(i-1).getX()/sizeD))/sizeD, 4);
+                            str += ",";
+                            break;
+                        }
+                    }   
                 }
-                if (!badArray) {
-                    System.out.println(str.substring(0, str.length()-1) + "}");
-                    statusField.setText("<html>Array Printed to<br>Terminal</html>");
-                    statusCooldown = 0;
-                } else {
-                    System.out.println("Invalid Array - Ensure points are sequential and constitute a valid function");
-                }
+                System.out.println(str.substring(0, str.length()-1) + "}");
+                statusField.setText("<html>Array Printed to<br>Terminal</html>");
+                statusCooldown = 0;
             }
         });
         importArray.addActionListener(new AbstractAction() {

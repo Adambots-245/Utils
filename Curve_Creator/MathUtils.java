@@ -6,6 +6,9 @@ public class MathUtils {
     public static double getDist(CurveCreator.point point, Point mouse) {
         return Math.hypot(point.getX()-mouse.x, point.getY()-mouse.y);
     }
+    public static double lerp(double min, double max, double f) {
+        return min+f*(max-min);
+    }
 
     public static int clamp(int val, int min, int max) {
         val = Math.min(val, max);
