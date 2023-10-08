@@ -164,17 +164,17 @@ public class CurveCreator {
                 }
                 String str = "{";
                 double inc = 0.01;
-                for (double x = 0; x <= 1; x += inc) {
+                for (double x = 0; x <= 1+inc; x += inc) {
                     for (int i = 0; i < points.size(); i++) {
                         if (points.get(i).getX() > x*size) {
                             str += MathUtils.roundToPlace(MathUtils.lerp(points.get(i-1).getY(), points.get(i).getY(), 
-                                (x+inc-points.get(i-1).getX()/sizeD)/(points.get(i).getX()/sizeD-points.get(i-1).getX()/sizeD))/sizeD, 4);
+                                (x-points.get(i-1).getX()/sizeD)/(points.get(i).getX()/sizeD-points.get(i-1).getX()/sizeD))/sizeD, 4);
                             str += ",";
                             break;
                         }
                     }   
                 }
-                System.out.println(str.substring(0, str.length()-1) + "}");
+                System.out.println(str += "1.0}");
                 statusField.setText("<html>Array Printed to<br>Terminal</html>");
                 statusCooldown = 0;
             }
