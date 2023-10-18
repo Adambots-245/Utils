@@ -21,8 +21,8 @@ public class CurveCreator {
     static final double moveThreshold = 15;
     static int statusCooldown = 0;
 
-    static ArrayList<point> points = new ArrayList<point>(Arrays.asList(new point(0, 0, true), new point(size, size, true)));
-    static point selected;
+    static ArrayList<Posotion> points = new ArrayList<Posotion>(Arrays.asList(new Posotion(0, 0, true), new Posotion(size, size, true)));
+    static Posotion selected;
 
     static Boolean movePoint = false;
     static Boolean mouseDown = false;
@@ -30,12 +30,13 @@ public class CurveCreator {
     static JTextField xField;
     static JTextField yField;
     static JTextField importField;
+    static JLabel statusField;
 
-    public static class point{
+    public static class Posotion{
         int x;
         int y;
         Boolean fixed;
-        public point(int x, int y, Boolean fixed) {
+        public Posotion(int x, int y, Boolean fixed) {
             this.x = x;
             this.y = y;
             this.fixed = fixed;
@@ -71,7 +72,7 @@ public class CurveCreator {
 
         FrameUtils.label("X:", size + 10, 85, 190, 25);
         FrameUtils.label("Y:", size + 10, 110, 190, 25);
-        JLabel statusField = FrameUtils.label("", size + 10, size-60, 190, 50);
+        statusField = FrameUtils.label("", size + 10, size-60, 190, 50);
 
         xField = FrameUtils.field("0", size + 35, 85, 155, 25);
         yField = FrameUtils.field("0", size + 35, 110, 155, 25);
@@ -114,10 +115,10 @@ public class CurveCreator {
             public void mousePressed(MouseEvent me) {
                 if (me.getX() < size+20) {
                     mouseDown = true;
-                    for (point Point : points){
-                        if (MathUtils.getDist(Point, getMousePos()) < moveThreshold) {
-                            if (!Point.fixed) {
-                                selected = Point;
+                    for (Posotion point : points){
+                        if (MathUtils.getDist(point, getMousePos()) < moveThreshold) {
+                            if (!point.fixed) {
+                                selected = point;
                                 updatePosText();
                                 frame.repaint();
                             } else {
@@ -156,13 +157,12 @@ public class CurveCreator {
                 for (int i = 0; i < points.size(); i++) {
                     if (points.get(i).getX() < prevX) {
                         System.out.println("Invalid Array - Ensure points are sequential and constitute a valid function");
-                        statusField.setText("<html>Error - Check<br>Terminal</html>");
-                        statusCooldown = 0;
+                        updateStatus("<html>Error - Check<br>Terminal</html>");
                         return;
                     }
                     prevX = points.get(i).getX();
                 }
-                String str = "{";
+                String str = "";
                 double inc = 0.01;
                 for (double x = 0; x <= 1+inc; x += inc) {
                     for (int i = 0; i < points.size(); i++) {
@@ -174,31 +174,34 @@ public class CurveCreator {
                         }
                     }   
                 }
-                System.out.println(str += "1.0}");
-                statusField.setText("<html>Array Printed to<br>Terminal</html>");
-                statusCooldown = 0;
+                str += "1.0!";
+                for (Posotion point : points) {
+                    str += MathUtils.roundToPlace(point.x/sizeD, 5) + "," + MathUtils.roundToPlace(point.y/sizeD, 5) + ",";
+                }
+                System.out.println("\n" + str.substring(0, str.length()-1));
+                updateStatus("<html>Array Printed to<br>Terminal</html>");
             }
         });
         importArray.addActionListener(new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 try {
                     ArrayList<Double> vals = new ArrayList<Double>();
-                    String[] input = importField.getText().split(",");
+                    String[] input = importField.getText().trim().split("!")[1].split(",");
                     for (String string : input) {
-                        string = string.replace("{", "").replace("}", "");
+                        string = string.replaceAll("\"", "");
                         string = string.trim();
                         vals.add(Double.valueOf(string));
                     }
                     points.clear();
                     for (int i = 0; i < vals.size()-1; i += 2) {
-                        points.add(new point((int)(vals.get(i)*sizeD), (int)(vals.get(i+1)*sizeD), i == 0 || i == vals.size()-2));
+                        points.add(new Posotion((int)(vals.get(i)*sizeD), (int)(vals.get(i+1)*sizeD), i == 0 || i == vals.size()-2));
                     }
                     clearSelected();
                     importField.setText("");
-                    statusField.setText("<html>Array Imported<br>Successfully</html>");
-                    statusCooldown = 0;
-                } catch (NumberFormatException value) {
-                    System.out.println("Invalid Entry - Ensure only the 2D array is inputted: {{...}, {...}}");
+                    updateStatus("<html>Array Imported<br>Successfully</html>");
+                } catch (NumberFormatException|ArrayIndexOutOfBoundsException a) {
+                    System.out.println("Invalid Entry - Ensure only the data string is inputted: \"0.0,0.01...1.0\"");
+                    updateStatus("<html>Error - Check<br>Terminal</html>");
                 }
             }
         });
@@ -221,10 +224,15 @@ public class CurveCreator {
         yField.addActionListener(xyInputs);
     }
 
+    public static void updateStatus (String status) {
+        statusField.setText(status);
+        statusCooldown = 0;
+    }
+
     public static void addPoint(Point pos) {
         for (int i = 0; i < points.size(); i++) {
             if (points.get(i).x > pos.x) {
-                points.add(i, new point(pos.x, pos.y, false));
+                points.add(i, new Posotion(pos.x, pos.y, false));
                 return;
             }
         }

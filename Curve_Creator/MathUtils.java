@@ -3,7 +3,7 @@ package Curve_Creator;
 import java.awt.*;
 
 public class MathUtils {
-    public static double getDist(CurveCreator.point point, Point mouse) {
+    public static double getDist(CurveCreator.Posotion point, Point mouse) {
         return Math.hypot(point.getX()-mouse.x, point.getY()-mouse.y);
     }
     public static double lerp(double min, double max, double f) {
