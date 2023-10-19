@@ -3,14 +3,14 @@ package Curve_Creator;
 import java.awt.*;
 
 public class MathUtils {
-    public static double getDist(CurveCreator.Posotion point, Point mouse) {
-        return Math.hypot(point.getX()-mouse.x, point.getY()-mouse.y);
+    public static double getDist(CurveCreator.curvePoint point, Point mouse) {
+        return Math.hypot(point.getScaledX()-mouse.x, point.getScaledY()-mouse.y);
     }
     public static double lerp(double min, double max, double f) {
         return min+f*(max-min);
     }
 
-    public static int clamp(int val, int min, int max) {
+    public static double clamp(double val, double min, double max) {
         val = Math.min(val, max);
         val = Math.max(val, min);
         return val;

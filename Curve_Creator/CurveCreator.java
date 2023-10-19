@@ -21,8 +21,8 @@ public class CurveCreator {
     static final double moveThreshold = 15;
     static int statusCooldown = 0;
 
-    static ArrayList<Posotion> points = new ArrayList<Posotion>(Arrays.asList(new Posotion(0, 0, true), new Posotion(size, size, true)));
-    static Posotion selected;
+    static ArrayList<curvePoint> points = new ArrayList<curvePoint>(Arrays.asList(new curvePoint(0, 0, true), new curvePoint(1, 1, true)));
+    static curvePoint selected;
 
     static Boolean movePoint = false;
     static Boolean mouseDown = false;
@@ -32,30 +32,42 @@ public class CurveCreator {
     static JTextField importField;
     static JLabel statusField;
 
-    public static class Posotion{
-        int x;
-        int y;
+    public static class curvePoint{
+        double x;
+        double y;
         Boolean fixed;
-        public Posotion(int x, int y, Boolean fixed) {
+        public curvePoint(double x, double y, Boolean fixed) {
             this.x = x;
             this.y = y;
             this.fixed = fixed;
         }
+        public curvePoint(Point pos) {
+            this.x = pos.x/sizeD;
+            this.y = pos.y/sizeD;
+            this.fixed = false;
+        }
 
-        public void setPos(int x, int y) {
+        public void setPos(double x, double y) {
             this.x = x;
             this.y = y;
         }
         public void setPos(Point point) {
-            this.x = point.x;
-            this.y = point.y;
+            this.x = point.x/sizeD;
+            this.y = point.y/sizeD;
         }
 
-        public int getX() {
+        public double getX() {
             return this.x;
         }
-        public int getY() {
+        public double getY() {
             return this.y;
+        }
+
+        public int getScaledX() {
+            return (int)(this.x*size);
+        }
+        public int getScaledY() {
+            return (int)(this.y*size);
         }
     }
 
@@ -115,7 +127,7 @@ public class CurveCreator {
             public void mousePressed(MouseEvent me) {
                 if (me.getX() < size+20) {
                     mouseDown = true;
-                    for (Posotion point : points){
+                    for (curvePoint point : points){
                         if (MathUtils.getDist(point, getMousePos()) < moveThreshold) {
                             if (!point.fixed) {
                                 selected = point;
@@ -153,7 +165,7 @@ public class CurveCreator {
         });
         generateArray.addActionListener(new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
-                int prevX = 0;
+                double prevX = 0;
                 for (int i = 0; i < points.size(); i++) {
                     if (points.get(i).getX() < prevX) {
                         System.out.println("Invalid Array - Ensure points are sequential and constitute a valid function");
@@ -166,17 +178,17 @@ public class CurveCreator {
                 double inc = 0.01;
                 for (double x = 0; x <= 1+inc; x += inc) {
                     for (int i = 0; i < points.size(); i++) {
-                        if (points.get(i).getX() > x*size) {
+                        if (points.get(i).getX() > x) {
                             str += MathUtils.roundToPlace(MathUtils.lerp(points.get(i-1).getY(), points.get(i).getY(), 
-                                (x-points.get(i-1).getX()/sizeD)/(points.get(i).getX()/sizeD-points.get(i-1).getX()/sizeD))/sizeD, 4);
+                                (x-points.get(i-1).getX())/(points.get(i).getX()-points.get(i-1).getX())), 4);
                             str += ",";
                             break;
                         }
                     }   
                 }
-                str += "1.0!";
-                for (Posotion point : points) {
-                    str += MathUtils.roundToPlace(point.x/sizeD, 5) + "," + MathUtils.roundToPlace(point.y/sizeD, 5) + ",";
+                str += "1.0!-!";
+                for (curvePoint point : points) {
+                    str += MathUtils.roundToPlace(point.x, 5) + "," + MathUtils.roundToPlace(point.y, 5) + ",";
                 }
                 System.out.println("\n" + str.substring(0, str.length()-1));
                 updateStatus("<html>Array Printed to<br>Terminal</html>");
@@ -186,7 +198,7 @@ public class CurveCreator {
             public void actionPerformed(ActionEvent e) {
                 try {
                     ArrayList<Double> vals = new ArrayList<Double>();
-                    String[] input = importField.getText().trim().split("!")[1].split(",");
+                    String[] input = importField.getText().trim().split("!-!")[1].split(",");
                     for (String string : input) {
                         string = string.replaceAll("\"", "");
                         string = string.trim();
@@ -194,7 +206,7 @@ public class CurveCreator {
                     }
                     points.clear();
                     for (int i = 0; i < vals.size()-1; i += 2) {
-                        points.add(new Posotion((int)(vals.get(i)*sizeD), (int)(vals.get(i+1)*sizeD), i == 0 || i == vals.size()-2));
+                        points.add(new curvePoint(vals.get(i), vals.get(i+1), i == 0 || i == vals.size()-2));
                     }
                     clearSelected();
                     importField.setText("");
@@ -210,9 +222,9 @@ public class CurveCreator {
             public void actionPerformed(ActionEvent e) {
                 if (selected != null) {
                     try {
-                        double x = Double.parseDouble(xField.getText())*sizeD;
-                        double y = Double.parseDouble(yField.getText())*sizeD;
-                        selected.setPos(MathUtils.clamp((int)x, 0, size), MathUtils.clamp((int)y, 0, size));
+                        double x = Double.parseDouble(xField.getText());
+                        double y = Double.parseDouble(yField.getText());
+                        selected.setPos(MathUtils.clamp(x, 0, 1), MathUtils.clamp(y, 0, 1));
                         frame.repaint();
                     } catch (NumberFormatException value) {
                         System.out.println("Invalid Entry");
@@ -231,8 +243,8 @@ public class CurveCreator {
 
     public static void addPoint(Point pos) {
         for (int i = 0; i < points.size(); i++) {
-            if (points.get(i).x > pos.x) {
-                points.add(i, new Posotion(pos.x, pos.y, false));
+            if (points.get(i).getScaledX() > pos.x) {
+                points.add(i, new curvePoint(pos));
                 return;
             }
         }
@@ -244,14 +256,14 @@ public class CurveCreator {
         yField.setText("0");
     }
     public static void updatePosText() {
-        xField.setText("" + MathUtils.roundToPlace((double)selected.getX()/sizeD, 3));
-        yField.setText("" + MathUtils.roundToPlace((double)selected.getY()/sizeD, 3));
+        xField.setText("" + MathUtils.roundToPlace(selected.getX(), 3));
+        yField.setText("" + MathUtils.roundToPlace(selected.getY(), 3));
     }
     public static Point getMousePos() {
         int xPos = MouseInfo.getPointerInfo().getLocation().x-frame.getLocation().x+xPointerOffest;
         int yPos = MouseInfo.getPointerInfo().getLocation().y-frame.getLocation().y+yPointerOffest;
-        xPos = MathUtils.clamp(xPos, 0, size);
-        yPos = MathUtils.clamp(yPos, 0, size);
+        xPos = (int)MathUtils.clamp(xPos, 0, size);
+        yPos = (int)MathUtils.clamp(yPos, 0, size);
         return new Point(xPos, size - yPos);
     }
     
@@ -279,14 +291,14 @@ public class CurveCreator {
                 } else {
                     g2d.setColor(Color.black);
                 }
-                g2d.drawArc(points.get(i).getX()-5, size-points.get(i).getY()-5, 10, 10, 0, 360);
+                g2d.drawArc(points.get(i).getScaledX()-5, size-points.get(i).getScaledY()-5, 10, 10, 0, 360);
 
                 g2d.setColor(Color.red);
                 g2d.setStroke(new BasicStroke(1));
-                g2d.fillArc(points.get(i).getX()-5, size-points.get(i).getY()-5, 10, 10, 0, 360);
+                g2d.fillArc(points.get(i).getScaledX()-5, size-points.get(i).getScaledY()-5, 10, 10, 0, 360);
 
                 if (i < points.size()-1) {
-                    g2d.drawLine(points.get(i).getX(), size-points.get(i).getY(), points.get(i+1).getX(), size-points.get(i+1).getY());
+                    g2d.drawLine(points.get(i).getScaledX(), size-points.get(i).getScaledY(), points.get(i+1).getScaledX(), size-points.get(i+1).getScaledY());
                 }
             }
         }
