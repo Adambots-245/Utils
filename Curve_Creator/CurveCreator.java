@@ -48,12 +48,12 @@ public class CurveCreator {
         }
 
         public void setPos(double x, double y) {
-            this.x = x;
-            this.y = y;
+            this.x = MathUtils.roundToPlace(x, 2);
+            this.y = MathUtils.roundToPlace(y, 2);
         }
         public void setPos(Point point) {
-            this.x = point.x/sizeD;
-            this.y = point.y/sizeD;
+            this.x = MathUtils.roundToPlace(point.x/sizeD, 2);
+            this.y = MathUtils.roundToPlace(point.y/sizeD, 2);
         }
 
         public double getX() {
@@ -122,7 +122,9 @@ public class CurveCreator {
         });
         timer.start(); 
 
+
         //Add mouse listener for clicks -----------------------------------------------------------
+
         frame.addMouseListener(new MouseListener() {
             public void mousePressed(MouseEvent me) {
                 if (me.getX() < size+20) {
@@ -157,6 +159,7 @@ public class CurveCreator {
         });
 
         //Add action listeners for buttons --------------------------------------------------------
+
         deletePoint.addActionListener(new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 points.remove(selected);
@@ -174,49 +177,53 @@ public class CurveCreator {
                     }
                     prevX = points.get(i).getX();
                 }
+
                 String str = "";
                 double inc = 0.01;
-                for (double x = 0; x <= 1+inc; x += inc) {
+                for (double x = 0; x <= 1; x += inc) {
                     for (int i = 0; i < points.size(); i++) {
+                        if (points.get(i).getX() == MathUtils.roundToPlace(x, 2)) {
+                            str += points.get(i).getY() + "*,";
+                            break;
+                        }
                         if (points.get(i).getX() > x) {
-                            str += MathUtils.roundToPlace(MathUtils.lerp(points.get(i-1).getY(), points.get(i).getY(), 
-                                (x-points.get(i-1).getX())/(points.get(i).getX()-points.get(i-1).getX())), 4);
-                            str += ",";
+                            curvePoint point1 = points.get(i-1);
+                            curvePoint point2 = points.get(i);
+                            double val = MathUtils.lerp(point1.getY(), point2.getY(), (x-point1.getX())/(point2.getX()-point1.getX()));
+                            str += MathUtils.roundToPlace(val, 2) + ",";
                             break;
                         }
                     }   
                 }
-                str += "1.0!-!";
-                for (curvePoint point : points) {
-                    str += MathUtils.roundToPlace(point.x, 5) + "," + MathUtils.roundToPlace(point.y, 5) + ",";
-                }
-                System.out.println("\n" + str.substring(0, str.length()-1));
+                
+                System.out.println(str + "1.0*");
                 updateStatus("<html>Array Printed to<br>Terminal</html>");
             }
         });
         importArray.addActionListener(new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    ArrayList<Double> vals = new ArrayList<Double>();
-                    String[] input = importField.getText().trim().split("!-!")[1].split(",");
-                    for (String string : input) {
-                        string = string.replaceAll("\"", "");
-                        string = string.trim();
-                        vals.add(Double.valueOf(string));
-                    }
                     points.clear();
-                    for (int i = 0; i < vals.size()-1; i += 2) {
-                        points.add(new curvePoint(vals.get(i), vals.get(i+1), i == 0 || i == vals.size()-2));
-                    }
                     clearSelected();
+
+                    String[] input = importField.getText().replaceAll("\"", "").trim().split(",");
+                    for (int x = 0; x <= 100; x++) {
+                        String str = input[x];
+                        if (str.contains("*")) {
+                            points.add(new curvePoint((double)x/100, Double.valueOf(str.substring(0, str.length()-1)), x == 0 || x == 100));
+                        }
+                    }
+
                     importField.setText("");
                     updateStatus("<html>Array Imported<br>Successfully</html>");
                 } catch (NumberFormatException|ArrayIndexOutOfBoundsException a) {
-                    System.out.println("Invalid Entry - Ensure only the data string is inputted: \"0.0,0.01...1.0\"");
+                    System.out.println("Invalid Entry - Ensure only the whole data string is inputted: \"0.0*,0.01...1.0*\"");
                     updateStatus("<html>Error - Check<br>Terminal</html>");
                 }
             }
         });
+
+        //Add action listeners for text fields ----------------------------------------------------
 
         Action xyInputs = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
@@ -236,10 +243,7 @@ public class CurveCreator {
         yField.addActionListener(xyInputs);
     }
 
-    public static void updateStatus (String status) {
-        statusField.setText(status);
-        statusCooldown = 0;
-    }
+    //Function Definitions ------------------------------------------------------------------------
 
     public static void addPoint(Point pos) {
         for (int i = 0; i < points.size(); i++) {
@@ -255,10 +259,16 @@ public class CurveCreator {
         xField.setText("0");
         yField.setText("0");
     }
+
     public static void updatePosText() {
-        xField.setText("" + MathUtils.roundToPlace(selected.getX(), 3));
-        yField.setText("" + MathUtils.roundToPlace(selected.getY(), 3));
+        xField.setText("" + MathUtils.roundToPlace(selected.getX(), 2));
+        yField.setText("" + MathUtils.roundToPlace(selected.getY(), 2));
     }
+    public static void updateStatus (String status) {
+        statusField.setText(status);
+        statusCooldown = 0;
+    }
+
     public static Point getMousePos() {
         int xPos = MouseInfo.getPointerInfo().getLocation().x-frame.getLocation().x+xPointerOffest;
         int yPos = MouseInfo.getPointerInfo().getLocation().y-frame.getLocation().y+yPointerOffest;
@@ -267,6 +277,7 @@ public class CurveCreator {
         return new Point(xPos, size - yPos);
     }
     
+    //Drawing Manager -----------------------------------------------------------------------------
 
     static class DrawingManager extends JPanel {
         protected void paintComponent(Graphics g) {
