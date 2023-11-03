@@ -1,3 +1,4 @@
+package Path_Flipper;
 public class PathFlipper {
     static final String input = "";
     static final double width = 16.5417;
