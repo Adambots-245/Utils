@@ -46,19 +46,6 @@ class PIDMethods{
         return button;
     } 
 
-//Getting An Image from a URL------------------------------------------------------------------------------------------------------------------------
-    public static Image imageURL(String link){  
-        Image finalImage = null;
-        try {
-            URL logoURL = new URL(link);
-            Image icon = ImageIO.read(logoURL);  
-            finalImage = icon;
-        } catch(IOException ie) {
-            ie.printStackTrace();
-        }
-        return finalImage;
-    } 
-
 //Drawing an Image with Specified Rotation-----------------------------------------------------------------------------------------------------------
     public static void drawRotatedImage(Graphics2D g2d, Image image, double angle, int x, int y){  
         AffineTransform backup = g2d.getTransform();

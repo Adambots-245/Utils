@@ -20,7 +20,7 @@ public class PIDSimulator extends JPanel {
 
     static final DrawingManager panel = new DrawingManager();
     static final Font font = new Font("Serif", Font.PLAIN, 20);
-    static final Image pendulum = PIDMethods.imageURL("https://github.com/CrazyMeowCows/Images/blob/main/Pendulum.png?raw=true");
+    static final Image pendulum = Toolkit.getDefaultToolkit().getImage("PID Pendulum Demo/Pendulum.png");
 
 //Variables------------------------------------------------------------------------------------------------------------------------------------------
     static double pGain = 0;
@@ -86,7 +86,7 @@ public class PIDSimulator extends JPanel {
         frame.add(panel);
 
     //Main Frame Properties--------------------------------------------------------------------------------------------------------------------------
-        frame.setIconImage(PIDMethods.imageURL("https://github.com/CrazyMeowCows/Images/blob/main/AdambotsLogoBlack.png?raw=true"));
+        frame.setIconImage(Toolkit.getDefaultToolkit().getImage("PID Pendulum Demo//AdambotsLogoBlack.png"));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setLocationRelativeTo(null);
