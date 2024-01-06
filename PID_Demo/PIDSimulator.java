@@ -21,7 +21,7 @@ public class PIDSimulator extends JPanel {
 
     static final DrawingManager panel = new DrawingManager();
     static final Font font = new Font("Serif", Font.PLAIN, 20);
-    static final Image pendulum = Toolkit.getDefaultToolkit().getImage("PID Pendulum Demo/Pendulum.png");
+    static final Image pendulum = Toolkit.getDefaultToolkit().getImage("PID_Demo/Pendulum.png");
 
 //Variables------------------------------------------------------------------------------------------------------------------------------------------
     static double pGain = 0;
